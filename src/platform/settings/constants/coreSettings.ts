@@ -971,7 +971,11 @@ export const CORE_SETTINGS: SettingParams[] = [
     id: 'Comfy.TutorialCompleted',
     name: 'Tutorial completed',
     type: 'hidden',
-    defaultValue: false,
+    // OHOS(2026-09-05): 默认 true —— 官方首启教程导览(loadBlankWorkflow+模板引导)
+    // 与设备小内存形态不符; 跳过导览后启动即 loadGraphData() → defaultGraph
+    // (ohos SD-Turbo 轻量画布, src/scripts/ohosDefaultGraph.ts)。模板列表仍可经
+    // 左侧栏入口打开。官方版默认 false, 升级 diff 时留意本行。
+    defaultValue: true,
     versionAdded: '1.8.7'
   },
   {
