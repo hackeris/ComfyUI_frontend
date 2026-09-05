@@ -34,6 +34,13 @@ vi.mock('@/stores/workspace/sidebarTabStore', () => ({
   useSidebarTabStore: () => mockSidebarTabStore
 }))
 
+// W3: missingModelDownload 的 web 分支走后端端点(Unsupported → 回落浏览器)
+vi.mock('@/services/modelDownloadService', () => ({
+  ModelDownloadUnsupportedError: class extends Error {
+    override name = 'ModelDownloadUnsupportedError'
+  }
+}))
+
 beforeEach(() => {
   vi.stubGlobal('fetch', fetchMock)
   clearMetadataCache()
@@ -472,16 +479,8 @@ describe('downloadModel', () => {
     mockSidebarTabStore.activeSidebarTabId = null
   })
 
-  it.for([
-    {
-      name: 'model.safetensors',
-      url: 'https://huggingface.co/org/model/resolve/main/model.safetensors'
-    },
-    {
-      name: 'fake_model.safetensors',
-      url: 'http://localhost:8188/api/devtools/fake_model.safetensors'
-    }
-  ])('opens browser downloads for allowlisted URL $url', ({ name, url }) => {
+  it('web 分支: 后端下载端点启用(store.start 成功)不打开浏览器', async () => {
+    mockStartDownload.mockResolvedValue(undefined)
     const clickedAnchors: HTMLAnchorElement[] = []
     vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(
       function (this: HTMLAnchorElement) {
@@ -489,20 +488,48 @@ describe('downloadModel', () => {
       }
     )
 
-    downloadModel(
+    await downloadModel(
       {
-        name,
-        url,
+        name: 'model.safetensors',
+        url: 'https://huggingface.co/org/model/resolve/main/model.safetensors',
+        directory: 'checkpoints'
+      },
+      {}
+    )
+
+    expect(mockStartDownload).toHaveBeenCalledWith({
+      url: 'https://huggingface.co/org/model/resolve/main/model.safetensors',
+      savePath: 'checkpoints',
+      filename: 'model.safetensors'
+    })
+    expect(clickedAnchors).toHaveLength(0)
+  })
+
+  it('web 分支: 后端不可用(Unsupported)→ 回落浏览器下载', async () => {
+    const { ModelDownloadUnsupportedError } = await import(
+      '@/services/modelDownloadService'
+    )
+    mockStartDownload.mockRejectedValue(new ModelDownloadUnsupportedError())
+    const clickedAnchors: HTMLAnchorElement[] = []
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(
+      function (this: HTMLAnchorElement) {
+        clickedAnchors.push(this)
+      }
+    )
+
+    await downloadModel(
+      {
+        name: 'model.safetensors',
+        url: 'https://huggingface.co/org/model/resolve/main/model.safetensors',
         directory: 'checkpoints'
       },
       {}
     )
 
     expect(clickedAnchors).toHaveLength(1)
-    expect(clickedAnchors[0]?.href).toBe(url)
-    expect(clickedAnchors[0]?.download).toBe(name)
-    expect(clickedAnchors[0]?.target).toBe('_blank')
-    expect(clickedAnchors[0]?.rel).toBe('noopener noreferrer')
+    expect(clickedAnchors[0]?.href).toBe(
+      'https://huggingface.co/org/model/resolve/main/model.safetensors'
+    )
   })
 
   it.for([

@@ -1,5 +1,6 @@
 import { downloadUrlToHfRepoUrl, isCivitaiModelUrl } from '@/utils/formatUtil'
 import { isDesktop } from '@/platform/distribution/types'
+import { ModelDownloadUnsupportedError } from '@/services/modelDownloadService'
 import { useElectronDownloadStore } from '@/stores/electronDownloadStore'
 import { useSidebarTabStore } from '@/stores/workspace/sidebarTabStore'
 import type { ComfyDesktop2Bridge } from '@/types'
@@ -118,10 +119,10 @@ export function isModelDownloadable(model: ModelWithUrl): boolean {
   return true
 }
 
-export function downloadModel(
+export async function downloadModel(
   model: ModelWithUrl,
   paths: Record<string, string[]>
-): void {
+): Promise<void> {
   if (!isModelDownloadable(model)) return
 
   const desktop2Bridge = window.__comfyDesktop2
@@ -133,7 +134,25 @@ export function downloadModel(
   }
 
   if (!isDesktop) {
-    openUrlInNewTab(model.url, model.name)
+    // W3 OHOS web 分支: 后端下载端点优先(目录名直传, 端点按类型目录管理);
+    //   远端/云后端(无本地端点) → 直接回落官方"新标签页下载"。
+    if (isRemote) {
+      openUrlInNewTab(model.url, model.name)
+      return
+    }
+    try {
+      await useElectronDownloadStore().start({
+        url: model.url,
+        savePath: model.directory,
+        filename: model.name
+      })
+    } catch (e: unknown) {
+      if (e instanceof ModelDownloadUnsupportedError) {
+        openUrlInNewTab(model.url, model.name)
+        return
+      }
+      console.error('[missingModelDownload] backend download failed:', e)
+    }
     return
   }
 

@@ -25,7 +25,8 @@ export function useMissingModelDownload() {
   }
 
   function downloadMissingModel(model: ModelWithUrl): void {
-    downloadModel(model, store.folderPaths)
+    // downloadModel 现为 async(web 分支 await 后端端点), 错误内吞, 调用方保持 void 接口
+    void downloadModel(model, store.folderPaths)
   }
 
   // Always try the bridge: it opens in the user's Electron session. isRemote()

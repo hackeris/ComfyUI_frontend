@@ -5253,5 +5253,17 @@
     "label": "缩放控制",
     "showMinimap": "显示小地图",
     "zoomToFit": "适合画面"
+  },
+  "modelDownloads": {
+    "title": "下载模型",
+    "browse": "浏览可下载模型",
+    "loading": "加载模型目录…",
+    "empty": "暂无可用模型清单",
+    "backendUnavailable": "后端不支持模型下载,已回退浏览器下载",
+    "download": "下载",
+    "downloading": "下载中",
+    "cancel": "取消",
+    "downloadFailed": "模型下载失败",
+    "required": "推荐(设备基线)"
   }
 }

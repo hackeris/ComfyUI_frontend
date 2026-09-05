@@ -5253,5 +5253,17 @@
     "runModeTriggerAutoLimitTooltip": "Ask when credit limit is reached",
     "showMore": "Show more",
     "showLess": "Show less"
+  },
+  "modelDownloads": {
+    "title": "Download Models",
+    "browse": "Browse downloadable models",
+    "loading": "Loading model catalog...",
+    "empty": "No downloadable models available",
+    "backendUnavailable": "Model download backend unavailable, falling back to browser",
+    "download": "Download",
+    "downloading": "Downloading",
+    "cancel": "Cancel",
+    "downloadFailed": "Model download failed",
+    "required": "Recommended (device baseline)"
   }
 }

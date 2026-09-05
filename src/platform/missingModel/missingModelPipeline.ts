@@ -9,6 +9,8 @@ import {
 } from '@/platform/missingModel/missingModelScan'
 import type { MissingModelWorkflowData } from '@/platform/missingModel/missingModelScan'
 import type { MissingModelCandidate } from '@/platform/missingModel/types'
+import type { CatalogEntry } from '@/services/modelDownloadService'
+import { fetchModelDownloadCatalog } from '@/services/modelDownloadService'
 import { useToastStore } from '@/platform/updates/common/toastStore'
 import { updatePendingWarnings } from '@/platform/workflow/core/utils/pendingWarnings'
 import type { ComfyWorkflow } from '@/platform/workflow/management/stores/comfyWorkflow'
@@ -100,6 +102,33 @@ function getCurrentMissingModelMetadata(
   )
 }
 
+/**
+ * W3 OHOS: 扫描/内嵌元数据不产 URL(设备无官方 metadata)时, 用后端模型目录
+ * (catalog)按文件名匹配补下载 URL —— 已具备 url 的候选不动; catalog 不可用/无命中
+ * 保持原状(无 url → UI 不显示下载按钮, 静默)。
+ */
+async function applyCatalogUrls(
+  candidates: MissingModelCandidate[]
+): Promise<MissingModelCandidate[]> {
+  if (candidates.every((c) => c.url)) return candidates
+  let entries: CatalogEntry[]
+  try {
+    entries = await fetchModelDownloadCatalog()
+  } catch {
+    return candidates
+  }
+  if (!entries.length) return candidates
+  const byName = new Map(entries.map((e) => [e.name, e]))
+  return candidates.map((c) => {
+    if (c.url) return c
+    const hit = byName.get(c.name)
+    if (hit && (!c.directory || c.directory === hit.directory)) {
+      return { ...c, url: hit.url, directory: c.directory ?? hit.directory }
+    }
+    return c
+  })
+}
+
 export async function runMissingModelPipeline({
   graph,
   graphData,
@@ -134,7 +163,9 @@ export async function runMissingModelPipeline({
     isCandidateScopeActive(graph, c)
   )
 
-  const confirmedCandidates = enrichedCandidates.filter(
+  const enrichedCandidatesWithUrls = await applyCatalogUrls(enrichedCandidates)
+
+  const confirmedCandidates = enrichedCandidatesWithUrls.filter(
     (c) => c.isMissing === true
   )
   const downloadableCandidates = confirmedCandidates.filter(hasDownloadMetadata)
@@ -147,9 +178,9 @@ export async function runMissingModelPipeline({
     missingModelCandidates: confirmedCandidates
   })
 
-  if (enrichedCandidates.length) {
+  if (enrichedCandidatesWithUrls.length) {
     if (isCloud) {
-      void verifyAssetSupportedCandidates(enrichedCandidates, controller.signal)
+      void verifyAssetSupportedCandidates(enrichedCandidatesWithUrls, controller.signal)
         .then(() => {
           if (controller.signal.aborted) return
           // Re-check ancestor: user may have bypassed a container

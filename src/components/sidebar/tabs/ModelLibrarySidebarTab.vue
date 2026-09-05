@@ -20,6 +20,16 @@
       >
         <i class="icon-[lucide--cloud-download] size-4" />
       </Button>
+      <Button
+        v-if="electronDownloadStore.backendSupported"
+        v-tooltip.bottom="$t('modelDownloads.browse')"
+        variant="muted-textonly"
+        size="icon"
+        :aria-label="$t('modelDownloads.browse')"
+        @click="downloadDialogOpen = true"
+      >
+        <i class="icon-[lucide--folder-down] size-4" />
+      </Button>
     </template>
     <template #header>
       <SidebarTopArea>
@@ -47,7 +57,9 @@
       </SidebarTopArea>
     </template>
     <template #body>
-      <ElectronDownloadItems v-if="isDesktop" />
+      <!-- W3 OHOS: 去掉 electron 门控 —— ElectronDownloadItems 自身空列表不渲染;
+           web 后端(我们的 /api/models/download)有任务时同样展示下载项 + 进度 -->
+      <ElectronDownloadItems />
 
       <Divider type="dashed" class="m-2" />
       <TreeExplorer
@@ -63,6 +75,7 @@
     </template>
   </SidebarTabTemplate>
   <div id="model-library-model-preview-container" />
+  <ModelDownloadDialog v-model="downloadDialogOpen" />
 </template>
 
 <script setup lang="ts">
@@ -75,6 +88,7 @@ import SidebarTopArea from '@/components/sidebar/tabs/SidebarTopArea.vue'
 import TreeExplorer from '@/components/common/TreeExplorer.vue'
 import SidebarTabTemplate from '@/components/sidebar/tabs/SidebarTabTemplate.vue'
 import ElectronDownloadItems from '@/components/sidebar/tabs/modelLibrary/ElectronDownloadItems.vue'
+import ModelDownloadDialog from '@/components/sidebar/tabs/modelLibrary/ModelDownloadDialog.vue'
 import ModelTreeLeaf from '@/components/sidebar/tabs/modelLibrary/ModelTreeLeaf.vue'
 import Button from '@/components/ui/button/Button.vue'
 import { startModelLoaderDrag } from '@/composables/node/startModelNodeDragFromAsset'
@@ -82,17 +96,18 @@ import { useTreeExpansion } from '@/composables/useTreeExpansion'
 import { useSettingStore } from '@/platform/settings/settingStore'
 import { useToastStore } from '@/platform/updates/common/toastStore'
 import { useAssetDownloadStore } from '@/stores/assetDownloadStore'
+import { useElectronDownloadStore } from '@/stores/electronDownloadStore'
 import type { ComfyModelDef, ModelFolder } from '@/stores/modelStore'
 import { ResourceState, useModelStore } from '@/stores/modelStore'
 import { useModelToNodeStore } from '@/stores/modelToNodeStore'
 import type { TreeExplorerNode, TreeNode } from '@/types/treeExplorerTypes'
-import { isDesktop } from '@/platform/distribution/types'
 import { buildTree } from '@/utils/treeUtil'
 
 const modelStore = useModelStore()
 const modelToNodeStore = useModelToNodeStore()
 const settingStore = useSettingStore()
 const toastStore = useToastStore()
+const electronDownloadStore = useElectronDownloadStore()
 const { t } = useI18n()
 const usesAssetApi = computed(() =>
   settingStore.get('Comfy.Assets.UseAssetAPI')
@@ -100,6 +115,7 @@ const usesAssetApi = computed(() =>
 const assetDownloadStore = useAssetDownloadStore()
 const searchBoxRef = ref()
 const searchQuery = ref<string>('')
+const downloadDialogOpen = ref(false)
 /**
  * The committed query the tree derives from. SearchInput debounces its
  * `search` emit, so the full recompute-and-mount cost of a query change runs
