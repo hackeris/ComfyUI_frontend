@@ -1,4 +1,5 @@
 import type { ComfyWorkflowJSON } from '@/platform/workflow/validation/schemas/workflowSchema'
+import { ohosDefaultGraph } from '@/scripts/ohosDefaultGraph'
 
 const testDefaultGraph: ComfyWorkflowJSON = {
   last_node_id: 9,
@@ -149,7 +150,7 @@ const testDefaultGraph: ComfyWorkflowJSON = {
   version: 0.4
 }
 
-const prodDefaultGraph: ComfyWorkflowJSON = {
+export const prodDefaultGraph: ComfyWorkflowJSON = {
   last_node_id: 71,
   last_link_id: 82,
   nodes: [
@@ -556,10 +557,12 @@ const prodDefaultGraph: ComfyWorkflowJSON = {
   version: 0.4
 }
 
+// OHOS(2026-09-05, W3): 生产默认画布 = 轻量 SD-Turbo 工作流(ohosDefaultGraph,
+//   256×256/2 步, 设备小内存形态); 官方 prodDefaultGraph(SD3/AuraFlow)保留供升级参照。
 export const defaultGraph: ComfyWorkflowJSON =
   import.meta.env.VITE_USE_LEGACY_DEFAULT_GRAPH === 'true'
     ? testDefaultGraph
-    : prodDefaultGraph
+    : ohosDefaultGraph
 
 export const defaultGraphJSON = JSON.stringify(defaultGraph)
 
