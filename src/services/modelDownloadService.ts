@@ -19,6 +19,7 @@ export interface BackendModelDownloadTask {
   task_id: string
   url: string
   directory: string
+  dest_dir?: string
   filename: string
   status: ModelDownloadStatus
   bytes_received: number

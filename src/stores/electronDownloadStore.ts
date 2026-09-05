@@ -40,7 +40,7 @@ export const useElectronDownloadStore = defineStore('downloads', () => {
   const toElectronDownload = (t: BackendModelDownloadTask): ElectronDownload => ({
     url: t.url,
     filename: t.filename,
-    savePath: t.directory,
+    savePath: t.dest_dir ?? t.directory,
     status: t.status as DownloadStatus,
     progress: t.bytes_total > 0 ? t.bytes_received / t.bytes_total : undefined,
     task_id: t.task_id
