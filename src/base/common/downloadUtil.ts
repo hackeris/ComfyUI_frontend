@@ -48,6 +48,39 @@ export function downloadFile(url: string, filename?: string): void {
     return
   }
 
+  // OHOS 定制(2026-09-08): ArkWeb 无系统下载保存 UI, "下载"改走应用侧
+  //   Picker(选目标位置→保存, 见主项目 Index.ets 注册的 __ohosImageSave 桥);
+  //   结果以 toast 反馈(成功=路径, 失败=原因, 取消=静默)。
+  const ohosSave = window.__ohosImageSave
+  if (ohosSave?.pickAndSave) {
+    ohosSave
+      .pickAndSave(url, inferredFilename)
+      .then((raw: string) => {
+        try {
+          const r = JSON.parse(raw) as { ok: boolean; path?: string; msg?: string }
+          if (r.ok) {
+            useToastStore().add({
+              severity: 'success',
+              summary: t('g.imageSaved'),
+              detail: r.path ?? ''
+            })
+          } else if (r.msg !== 'cancelled') {
+            useToastStore().add({
+              severity: 'error',
+              summary: t('g.error'),
+              detail: r.msg ?? t('g.failedToDownloadImage')
+            })
+          } // cancelled → 静默
+        } catch {
+          /* 解析失败静默 */
+        }
+      })
+      .catch((error) => {
+        console.error('ohos image save failed', error)
+      })
+    return
+  }
+
   triggerLinkDownload(url, inferredFilename)
 }
 

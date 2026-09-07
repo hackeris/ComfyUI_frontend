@@ -2045,7 +2045,8 @@
     "volume": "音量",
     "warning": "警告",
     "workflow": "工作流",
-    "you": "你"
+    "you": "你",
+    "imageSaved": "图片已保存"
   },
   "gettingStarted": {
     "loadFailed": "我们无法加载模板。",
