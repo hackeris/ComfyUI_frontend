@@ -64,7 +64,11 @@ export const useElectronDownloadStore = defineStore('downloads', () => {
     if (document.visibilityState !== 'visible') return
     try {
       const tasks = await listBackendModelDownloads()
-      for (const t of tasks) upsert(toElectronDownload(t))
+      for (const t of tasks) {
+        // 取消是用户主动终态: 本地为准, 不随轮询复活
+        if (t.status === DownloadStatus.CANCELLED) continue
+        upsert(toElectronDownload(t))
+      }
     } catch {
       // 后端不可达(未起/降级): 保留既有行, 下轮再试
     }
@@ -87,7 +91,10 @@ export const useElectronDownloadStore = defineStore('downloads', () => {
     try {
       const tasks = await listBackendModelDownloads()
       backendSupported.value = true
-      for (const t of tasks) upsert(toElectronDownload(t))
+      for (const t of tasks) {
+        if (t.status === DownloadStatus.CANCELLED) continue
+        upsert(toElectronDownload(t))
+      }
       setInterval(poll, POLL_MS)
     } catch (e) {
       if (e instanceof Error && e.name === 'ModelDownloadUnsupportedError') return
@@ -127,7 +134,11 @@ export const useElectronDownloadStore = defineStore('downloads', () => {
   const cancel = (url: string) => {
     if (isDesktop && DownloadManager) return DownloadManager.cancelDownload(url)
     const row = findByUrl(url)
-    return row?.task_id ? cancelBackendModelDownload(row.task_id) : Promise.resolve()
+    if (!row?.task_id) return Promise.resolve()
+    return cancelBackendModelDownload(row.task_id).then(() => {
+      const current = findByUrl(url)
+      if (current) current.status = DownloadStatus.CANCELLED
+    })
   }
 
   return {

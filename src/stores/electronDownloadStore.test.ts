@@ -100,4 +100,24 @@ describe('useElectronDownloadStore (web 分支)', () => {
     expect(mocks.resume).toHaveBeenCalledWith('a1b2c3d4e5f60718')
     expect(mocks.cancel).toHaveBeenCalledWith('a1b2c3d4e5f60718')
   })
+
+  it('cancel 成功后本地行即时置 cancelled', async () => {
+    mocks.list.mockResolvedValue([task()])
+    mocks.cancel.mockResolvedValue(undefined)
+    const { useElectronDownloadStore } = await import('./electronDownloadStore')
+    const store = useElectronDownloadStore()
+    await new Promise((r) => setTimeout(r, 0))
+    await store.cancel(task().url)
+    expect(store.downloads.find((d) => d.url === task().url)?.status).toBe(
+      'cancelled'
+    )
+  })
+
+  it('cancelled 任务不再随轮询/初始化进入列表(× 移除后不复现)', async () => {
+    mocks.list.mockResolvedValue([task({ status: 'cancelled' })])
+    const { useElectronDownloadStore } = await import('./electronDownloadStore')
+    const store = useElectronDownloadStore()
+    await new Promise((r) => setTimeout(r, 0))
+    expect(store.downloads.length).toBe(0)
+  })
 })

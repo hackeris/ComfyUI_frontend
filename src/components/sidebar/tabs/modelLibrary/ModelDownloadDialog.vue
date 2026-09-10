@@ -47,9 +47,11 @@ function formatBytes(bytes: number): string {
   return `${v.toFixed(v >= 100 || u === 0 ? 0 : 1)} ${units[u]}`
 }
 
+const ACTIVE_DOWNLOAD_STATUSES = ['pending', 'in_progress', 'paused']
+
 const activeDownload = (url: string) =>
   electronDownloadStore.downloads.find(
-    (d) => d.url === url && d.status !== 'completed'
+    (d) => d.url === url && ACTIVE_DOWNLOAD_STATUSES.includes(d.status ?? '')
   )
 
 async function loadCatalog(): Promise<void> {
