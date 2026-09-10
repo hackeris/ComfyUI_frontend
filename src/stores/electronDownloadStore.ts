@@ -5,14 +5,8 @@ import { computed, ref } from 'vue'
 
 import { isDesktop } from '@/platform/distribution/types'
 import { reportError } from '@/platform/telemetry/reportError'
-import {
-  cancelBackendModelDownload,
-  listBackendModelDownloads,
-  pauseBackendModelDownload,
-  resumeBackendModelDownload,
-  startBackendModelDownload,
-  type BackendModelDownloadTask
-} from '@/services/modelDownloadService'
+import { cancelBackendModelDownload, listBackendModelDownloads, pauseBackendModelDownload, resumeBackendModelDownload, startBackendModelDownload } from '@/services/modelDownloadService';
+import type { BackendModelDownloadTask } from '@/services/modelDownloadService';
 import { electronAPI } from '@/utils/envUtil'
 
 export interface ElectronDownload extends Pick<
@@ -37,7 +31,9 @@ export const useElectronDownloadStore = defineStore('downloads', () => {
   const findByUrl = (url: string) =>
     downloads.value.find((download) => url === download.url)
 
-  const toElectronDownload = (t: BackendModelDownloadTask): ElectronDownload => ({
+  const toElectronDownload = (
+    t: BackendModelDownloadTask
+  ): ElectronDownload => ({
     url: t.url,
     filename: t.filename,
     savePath: t.dest_dir ?? t.directory,
@@ -97,7 +93,8 @@ export const useElectronDownloadStore = defineStore('downloads', () => {
       }
       setInterval(poll, POLL_MS)
     } catch (e) {
-      if (e instanceof Error && e.name === 'ModelDownloadUnsupportedError') return
+      if (e instanceof Error && e.name === 'ModelDownloadUnsupportedError')
+        return
       reportError(e, { errorType: 'model_download_backend_probe_failed' })
     }
   }
@@ -117,19 +114,29 @@ export const useElectronDownloadStore = defineStore('downloads', () => {
       return DownloadManager.startDownload(url, savePath, filename)
     }
     return startBackendModelDownload(url, savePath, filename).then((t) => {
-      upsert(toElectronDownload(t))
+      upsert({
+        url,
+        filename,
+        savePath,
+        status: t.status as DownloadStatus,
+        task_id: t.task_id
+      })
     })
   }
 
   const pause = (url: string) => {
     if (isDesktop && DownloadManager) return DownloadManager.pauseDownload(url)
     const row = findByUrl(url)
-    return row?.task_id ? pauseBackendModelDownload(row.task_id) : Promise.resolve()
+    return row?.task_id
+      ? pauseBackendModelDownload(row.task_id)
+      : Promise.resolve()
   }
   const resume = (url: string) => {
     if (isDesktop && DownloadManager) return DownloadManager.resumeDownload(url)
     const row = findByUrl(url)
-    return row?.task_id ? resumeBackendModelDownload(row.task_id) : Promise.resolve()
+    return row?.task_id
+      ? resumeBackendModelDownload(row.task_id)
+      : Promise.resolve()
   }
   const cancel = (url: string) => {
     if (isDesktop && DownloadManager) return DownloadManager.cancelDownload(url)

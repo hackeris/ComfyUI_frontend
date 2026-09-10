@@ -75,6 +75,8 @@ import Button from '@/components/ui/button/Button.vue'
 import { useElectronDownloadStore } from '@/stores/electronDownloadStore'
 import type { ElectronDownload } from '@/stores/electronDownloadStore'
 
+import { getDownloadLabel } from './downloadLabel'
+
 const { t } = useI18n()
 
 const electronDownloadStore = useElectronDownloadStore()
@@ -82,14 +84,6 @@ const electronDownloadStore = useElectronDownloadStore()
 const props = defineProps<{
   download: ElectronDownload
 }>()
-
-const getDownloadLabel = (savePath: string) => {
-  let parts = savePath.split('/')
-  parts = parts.length === 1 ? parts[0].split('\\') : parts
-  const name = parts.pop()
-  const dir = parts.pop()
-  return `${dir}/${name}`
-}
 
 const triggerCancelDownload = () =>
   electronDownloadStore.cancel(props.download.url)

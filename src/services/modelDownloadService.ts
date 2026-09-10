@@ -59,11 +59,17 @@ const errBody = async (res: Response): Promise<Error> => {
   }
 }
 
+/** POST /models/download 只回 {task_id, status} —— 其余字段靠 list 轮询补齐 */
+export type BackendModelDownloadStart = Pick<
+  BackendModelDownloadTask,
+  'task_id' | 'status'
+>
+
 export async function startBackendModelDownload(
   url: string,
   directory: string,
   filename: string
-): Promise<BackendModelDownloadTask> {
+): Promise<BackendModelDownloadStart> {
   const res = await api.fetchApi('/models/download', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -74,7 +80,9 @@ export async function startBackendModelDownload(
   return await res.json()
 }
 
-export async function listBackendModelDownloads(): Promise<BackendModelDownloadTask[]> {
+export async function listBackendModelDownloads(): Promise<
+  BackendModelDownloadTask[]
+> {
   const res = await api.fetchApi('/models/download')
   if (isNotFound(res)) throw new ModelDownloadUnsupportedError()
   if (!res.ok) throw await errBody(res)
@@ -83,17 +91,27 @@ export async function listBackendModelDownloads(): Promise<BackendModelDownloadT
 }
 
 export async function pauseBackendModelDownload(taskId: string): Promise<void> {
-  const res = await api.fetchApi(`/models/download/${taskId}/pause`, { method: 'POST' })
+  const res = await api.fetchApi(`/models/download/${taskId}/pause`, {
+    method: 'POST'
+  })
   if (!res.ok) throw await errBody(res)
 }
 
-export async function resumeBackendModelDownload(taskId: string): Promise<void> {
-  const res = await api.fetchApi(`/models/download/${taskId}/resume`, { method: 'POST' })
+export async function resumeBackendModelDownload(
+  taskId: string
+): Promise<void> {
+  const res = await api.fetchApi(`/models/download/${taskId}/resume`, {
+    method: 'POST'
+  })
   if (!res.ok) throw await errBody(res)
 }
 
-export async function cancelBackendModelDownload(taskId: string): Promise<void> {
-  const res = await api.fetchApi(`/models/download/${taskId}/cancel`, { method: 'POST' })
+export async function cancelBackendModelDownload(
+  taskId: string
+): Promise<void> {
+  const res = await api.fetchApi(`/models/download/${taskId}/cancel`, {
+    method: 'POST'
+  })
   if (!res.ok) throw await errBody(res)
 }
 

@@ -26,7 +26,9 @@ vi.mock('@/platform/telemetry/reportError', () => ({
   reportError: vi.fn()
 }))
 
-const task = (over: Partial<BackendModelDownloadTask> = {}): BackendModelDownloadTask => ({
+const task = (
+  over: Partial<BackendModelDownloadTask> = {}
+): BackendModelDownloadTask => ({
   task_id: 'a1b2c3d4e5f60718',
   url: 'https://huggingface.co/x/a.safetensors',
   directory: 'checkpoints',
@@ -73,15 +75,30 @@ describe('useElectronDownloadStore (web 分支)', () => {
     expect(store.backendSupported).toBe(false)
   })
 
-  it('start 走后端并 push 行', async () => {
+  it('start 走后端并 push 行(行字段取自入参, POST 只回 task_id/status)', async () => {
     mocks.list.mockResolvedValue([])
-    mocks.start.mockResolvedValue(task({ status: 'pending' }))
+    mocks.start.mockResolvedValue({
+      task_id: 'a1b2c3d4e5f60718',
+      status: 'pending'
+    })
     const { useElectronDownloadStore } = await import('./electronDownloadStore')
     const store = useElectronDownloadStore()
     await new Promise((r) => setTimeout(r, 0))
-    await store.start({ url: task().url, savePath: 'checkpoints', filename: 'a.safetensors' })
-    expect(mocks.start).toHaveBeenCalledWith(task().url, 'checkpoints', 'a.safetensors')
-    expect(store.downloads.find((d) => d.url === task().url)?.status).toBe('pending')
+    await store.start({
+      url: task().url,
+      savePath: 'models/checkpoints',
+      filename: 'a.safetensors'
+    })
+    expect(mocks.start).toHaveBeenCalledWith(
+      task().url,
+      'models/checkpoints',
+      'a.safetensors'
+    )
+    const row = store.downloads.find((d) => d.url === task().url)
+    expect(row?.filename).toBe('a.safetensors')
+    expect(row?.savePath).toBe('models/checkpoints')
+    expect(row?.task_id).toBe('a1b2c3d4e5f60718')
+    expect(row?.status).toBe('pending')
   })
 
   it('pause/resume/cancel 以行内 task_id 调后端', async () => {
@@ -92,10 +109,14 @@ describe('useElectronDownloadStore (web 分支)', () => {
     mocks.cancel.mockResolvedValue(undefined)
     const { useElectronDownloadStore } = await import('./electronDownloadStore')
     const store = useElectronDownloadStore()
-    await store.start({ url: task().url, savePath: 'checkpoints', filename: 'a.safetensors' })
-    store.pause(task().url)
-    store.resume(task().url)
-    store.cancel(task().url)
+    await store.start({
+      url: task().url,
+      savePath: 'checkpoints',
+      filename: 'a.safetensors'
+    })
+    await store.pause(task().url)
+    await store.resume(task().url)
+    await store.cancel(task().url)
     expect(mocks.pause).toHaveBeenCalledWith('a1b2c3d4e5f60718')
     expect(mocks.resume).toHaveBeenCalledWith('a1b2c3d4e5f60718')
     expect(mocks.cancel).toHaveBeenCalledWith('a1b2c3d4e5f60718')
