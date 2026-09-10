@@ -7,7 +7,7 @@ import { api } from '@/scripts/api'
  * 后端无此端点(官方原版 core)→ 404 → ModelDownloadUnsupportedError,
  * 调用方(missingModelDownload/electronDownloadStore)负责回落官方行为。
  */
-export type ModelDownloadStatus =
+type ModelDownloadStatus =
   | 'pending'
   | 'in_progress'
   | 'paused'

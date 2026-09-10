@@ -91,7 +91,9 @@ const config: KnipConfig = {
   tags: [
     '-knipIgnoreUnusedButUsedByCustomNodes',
     '-knipIgnoreUnusedButUsedByVueNodesBranch',
-    '-knipIgnoreUsedByStackedPR'
+    '-knipIgnoreUsedByStackedPR',
+    // OHOS fork: 官方实现被定制替换后保留供上游升级比对
+    '-knipIgnoreUnusedButKeptForUpstreamReference'
   ]
 }
 

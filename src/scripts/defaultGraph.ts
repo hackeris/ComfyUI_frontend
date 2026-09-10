@@ -150,6 +150,7 @@ const testDefaultGraph: ComfyWorkflowJSON = {
   version: 0.4
 }
 
+/** @knipIgnoreUnusedButKeptForUpstreamReference — fork 默认画布已改 ohosDefaultGraph(见 defaultGraph), 官方图留作升级参照 */
 export const prodDefaultGraph: ComfyWorkflowJSON = {
   last_node_id: 71,
   last_link_id: 82,
