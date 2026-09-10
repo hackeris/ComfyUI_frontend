@@ -11,11 +11,8 @@ import DialogOverlay from '@/components/ui/dialog/DialogOverlay.vue'
 import DialogPortal from '@/components/ui/dialog/DialogPortal.vue'
 import DialogTitle from '@/components/ui/dialog/DialogTitle.vue'
 import { useToastStore } from '@/platform/updates/common/toastStore'
-import {
-  ModelDownloadUnsupportedError,
-  fetchModelDownloadCatalog,
-  type CatalogEntry
-} from '@/services/modelDownloadService'
+import { ModelDownloadUnsupportedError, fetchModelDownloadCatalog } from '@/services/modelDownloadService';
+import type { CatalogEntry } from '@/services/modelDownloadService';
 import { useElectronDownloadStore } from '@/stores/electronDownloadStore'
 import { useModelStore } from '@/stores/modelStore'
 
@@ -132,7 +129,7 @@ async function download(e: CatalogEntry): Promise<void> {
           >
             {{ t('modelDownloads.empty') }}
           </div>
-          <div v-else class="flex flex-col gap-2">
+          <div v-else class="flex max-h-[60vh] flex-col gap-2 overflow-y-auto">
             <div
               v-for="e in entries"
               :key="e.id"
