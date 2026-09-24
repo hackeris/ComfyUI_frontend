@@ -126,7 +126,10 @@
       }}</span>
     </div>
 
+    <!-- 2026-09-25 ohos: 门控 —— 该入口指向已被门控的 User 面板, 点它会落到首个设置分类
+         而非目标, 属坏体验。详见 docs/superpowers/specs/2026-09-24-branding-cleanup-design.md §3.1 -->
     <div
+      v-if="false"
       class="flex cursor-pointer items-center gap-2 px-4 py-2 hover:bg-secondary-background-hover"
       data-testid="user-settings-menu-item"
       @click="handleOpenUserSettings"

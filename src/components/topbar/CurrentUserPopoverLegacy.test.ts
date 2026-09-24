@@ -235,15 +235,10 @@ describe('CurrentUserPopoverLegacy', () => {
     })
   })
 
-  it('opens user settings and emits close event when settings item is clicked', async () => {
-    const { user, onClose } = renderComponent()
+  it('gates off the account settings item along with the User panel', () => {
+    renderComponent()
 
-    expect(screen.getByTestId('user-settings-menu-item')).toBeInTheDocument()
-
-    await user.click(screen.getByTestId('user-settings-menu-item'))
-
-    expect(mockShowSettingsDialog).toHaveBeenCalledWith('user')
-    expect(onClose).toHaveBeenCalledTimes(1)
+    expect(screen.queryByTestId('user-settings-menu-item')).toBeNull()
   })
 
   it('calls logout function and emits close event when logout item is clicked', async () => {

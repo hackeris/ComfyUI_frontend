@@ -402,7 +402,11 @@ const menuItems = computed<MenuItem[]>(() => {
     })
   }
   // Update ComfyUI - only for non-desktop, non-cloud with new manager UI
-  if (!isDesktop && !isCloud && isNewManagerUI.value) {
+  // 2026-09-25 ohos: 门控 —— 原条件 (!isDesktop && !isCloud) 恰好命中我们的 localhost 构建,
+  // 而本应用后端随 HAP 打包、版本锁定, 该更新入口点了无意义。详见
+  // docs/superpowers/specs/2026-09-24-branding-cleanup-design.md §3.1 #5
+  const showUpdateComfyUI = false as boolean
+  if (showUpdateComfyUI && !isDesktop && !isCloud && isNewManagerUI.value) {
     items.push({
       key: 'update-comfyui',
       type: 'item',
