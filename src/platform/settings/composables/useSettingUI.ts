@@ -306,7 +306,7 @@ export function useSettingUI(
     translateCategory({
       key: 'workspace',
       label: 'Workspace',
-      children: visibleWorkspacePanels.value
+      children: (showAccountPanels ? visibleWorkspacePanels.value : [])
         .map((panel) => panel.node)
         .map(translateCategory)
     }),
@@ -314,7 +314,7 @@ export function useSettingUI(
       key: 'general',
       label: 'General',
       children: [
-        translateCategory(userPanel.node),
+        ...(showAccountPanels ? [translateCategory(userPanel.node)] : []),
         ...coreSettingCategories.value.slice(0, 1).map(translateCategory),
         ...(shouldShowSecretsPanel.value
           ? [translateCategory(secretsPanel.node)]

@@ -218,55 +218,38 @@ describe('useSettingUI', () => {
       })
     })
 
-    it('shows Plan & Credits and Members in the cloud nav, unregistered as panels', () => {
+    it('hides Plan & Credits and Members from the cloud nav, unregistered as panels', () => {
       env.state.isCloud = true
-      const { defaultCategory, findPanelByKey, navGroups } =
+      const { defaultCategory, findPanelByKey, navGroups, settingCategories } =
         useSettingUI('workspace')
-      const workspaceItems = navGroups.value
-        .find((group) => group.title === 'Workspace')
-        ?.items.map(({ id, label }) => ({ id, label }))
 
-      expect(workspaceItems).toEqual([
-        { id: 'workspace', label: 'PlanCredits' },
-        { id: 'workspace-members', label: 'Members' }
-      ])
+      expect(navGroups.value.map(({ title }) => title)).toEqual(['General'])
       expect(findPanelByKey('workspace')).toBeNull()
       expect(findPanelByKey('workspace-members')).toBeNull()
-      expect(defaultCategory.value).toMatchObject({
-        key: 'workspace',
-        label: 'PlanCredits'
-      })
+      expect(defaultCategory.value).toBe(settingCategories.value[0])
     })
 
-    it('shows only Plan & Credits in the local Workspace group', () => {
+    it('hides the local Workspace group along with its panels', () => {
       const { findPanelByKey, navGroups } = useSettingUI()
-      const workspaceItems = navGroups.value
-        .find((group) => group.title === 'Workspace')
-        ?.items.map(({ id, label }) => ({ id, label }))
 
-      expect(workspaceItems).toEqual([
-        { id: 'workspace', label: 'PlanCredits' }
-      ])
+      expect(navGroups.value.map(({ title }) => title)).toEqual(['General'])
+      expect(findPanelByKey('workspace')).toBeNull()
       expect(findPanelByKey('workspace-members')).toBeNull()
       expect(findPanelByKey('workspace-allowlist')).toBeNull()
     })
 
     it.for([false, true])(
-      'uses Workspace and General groups when isCloud is %s',
+      'uses only the General group when isCloud is %s',
       (isCloud) => {
         env.state.isCloud = isCloud
         const { navGroups } = useSettingUI()
 
-        expect(navGroups.value.map(({ title }) => title)).toEqual([
-          'Workspace',
-          'General'
-        ])
+        expect(navGroups.value.map(({ title }) => title)).toEqual(['General'])
         expect(
           navGroups.value
             .find((group) => group.title === 'General')
             ?.items.map(({ id }) => id)
         ).toEqual([
-          'user',
           'root/Comfy',
           'secrets',
           'root/LiteGraph',
@@ -301,17 +284,13 @@ describe('useSettingUI', () => {
       })
     })
 
-    it('exposes workspace sections as Plan & Credits, Members, and Allowlist', () => {
+    it('hides the workspace sections from the nav', () => {
       const { navGroups } = useSettingUI()
-      const workspaceGroup = navGroups.value.find(
-        ({ title }) => title === 'Workspace'
-      )
 
-      expect(workspaceGroup?.items).toMatchObject([
-        { id: 'workspace', label: 'PlanCredits' },
-        { id: 'workspace-members', label: 'Members' },
-        { id: 'workspace-allowlist', label: 'Allowlist' }
-      ])
+      expect(navGroups.value.map(({ title }) => title)).toEqual(['General'])
+      expect(navKeys(navGroups.value)).not.toContain('workspace')
+      expect(navKeys(navGroups.value)).not.toContain('workspace-members')
+      expect(navKeys(navGroups.value)).not.toContain('workspace-allowlist')
     })
 
     it('hides Allowlist from workspace members', () => {
@@ -330,7 +309,7 @@ describe('useSettingUI', () => {
       expect(navKeys(navGroups.value)).not.toContain('workspace-allowlist')
     })
 
-    it('shows the crown when ineligible with providers present (policy-restricted)', () => {
+    it('shows no allowlist crown once the item is gated out (policy-restricted)', () => {
       env.state.partnerNodeGovernanceStatus = 'ineligible'
       env.state.partnerNodeGovernanceProviders = [{ id: 'provider-a' }]
 
@@ -339,7 +318,7 @@ describe('useSettingUI', () => {
         .flatMap((group) => group.items)
         .find((item) => item.id === 'workspace-allowlist')
 
-      expect(allowlistItem?.suffixIcon).toBe('icon-[lucide--crown]')
+      expect(allowlistItem).toBeUndefined()
     })
 
     it('does not show the crown when ineligible with no providers (catalog 403)', () => {
@@ -354,11 +333,11 @@ describe('useSettingUI', () => {
       expect(allowlistItem?.suffixIcon).toBeUndefined()
     })
 
-    it('uses Plan & Credits for logged-in local users', () => {
+    it('uses no workspace nav entries for logged-in local users', () => {
       env.state.isCloud = false
       const { navGroups } = useSettingUI()
 
-      expect(navKeys(navGroups.value)).toContain('workspace')
+      expect(navKeys(navGroups.value)).not.toContain('workspace')
       expect(navKeys(navGroups.value)).not.toContain('credits')
       expect(navKeys(navGroups.value)).not.toContain('workspace-members')
       expect(navKeys(navGroups.value)).not.toContain('workspace-allowlist')
