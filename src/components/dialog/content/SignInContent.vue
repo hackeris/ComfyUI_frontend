@@ -1,10 +1,6 @@
 <template>
   <div class="w-96 overflow-x-hidden p-2">
-    <ApiKeyForm
-      v-if="showApiKeyForm"
-      @back="showApiKeyForm = false"
-      @success="onSuccess"
-    />
+    <ApiKeyForm v-if="showApiKeyForm" @back="() => {}" @success="onSuccess" />
     <template v-else>
       <!-- Header -->
       <div class="mb-8 flex flex-col gap-4">
@@ -193,7 +189,10 @@ const { t } = useI18n()
 const authActions = useAuthActions()
 const isSecureContext = window.isSecureContext
 const isSignIn = ref(true)
-const showApiKeyForm = ref(false)
+// 2026-09-25 ohos: 账号登录面整体门控 —— 初始即进入 API Key 模式, 使 v-else 分支
+// (SignInForm/SignUpForm/SSO)永不渲染。门控而非删除, 详见
+// docs/superpowers/specs/2026-09-24-branding-cleanup-design.md §3.1
+const showApiKeyForm = ref(true)
 const ssoAllowed = isHostWhitelisted(normalizeHost(window.location.hostname))
 const showGoogleSsoInAppBrowserNotice = isEmbeddedWebView()
 const comfyPlatformBaseUrl = computed(() =>

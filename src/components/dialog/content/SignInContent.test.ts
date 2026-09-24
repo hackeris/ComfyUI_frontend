@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/vue'
+import { render, screen } from '@testing-library/vue'
 import { ref } from 'vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createI18n } from 'vue-i18n'
@@ -91,7 +91,7 @@ function renderSignInContent() {
       stubs: {
         SignUpForm: { template: '<form data-testid="signup-form" />' },
         SignInForm: { template: '<form data-testid="signin-form" />' },
-        ApiKeyForm: true,
+        ApiKeyForm: { template: '<div data-testid="api-key-form" />' },
         Divider: true,
         Message: { template: '<div><slot /></div>' }
       }
@@ -99,12 +99,7 @@ function renderSignInContent() {
   })
 }
 
-async function switchToSignUp(advanceTimers?: (ms: number) => void) {
-  const user = (await import('@testing-library/user-event')).default.setup(
-    advanceTimers ? { advanceTimers } : {}
-  )
-  await user.click(screen.getByText('Sign up'))
-}
+const flushAsync = () => new Promise((resolve) => setTimeout(resolve, 0))
 
 beforeEach(() => {
   inChina.value = false
@@ -112,85 +107,69 @@ beforeEach(() => {
 })
 
 describe('SignInContent', () => {
-  it('links legal terms directly to canonical Comfy pages', () => {
+  it('renders only the API key surface, withholding the account sign-in', () => {
     renderSignInContent()
 
-    expect(
-      screen.getByRole('link', { name: 'Terms of Service' })
-    ).toHaveAttribute('href', 'https://comfy.org/terms-of-service/')
-    expect(
-      screen.getByRole('link', { name: 'Privacy Policy' })
-    ).toHaveAttribute('href', 'https://comfy.org/privacy-policy/')
-  })
-
-  it('withholds the sign-up form while region detection is pending', async () => {
-    const settle = inChina.defer()
-    renderSignInContent()
-    await switchToSignUp()
-
-    expect(screen.getByTestId('region-check-pending')).toBeInTheDocument()
+    expect(screen.getByTestId('api-key-form')).toBeInTheDocument()
+    expect(screen.queryByTestId('signin-form')).not.toBeInTheDocument()
     expect(screen.queryByTestId('signup-form')).not.toBeInTheDocument()
     expect(
-      screen.getByRole('button', { name: /Sign up with Google/ }),
-      'only email sign-up is gated on region; third-party auth never waits on the probe'
-    ).toBeInTheDocument()
+      screen.queryByRole('button', { name: /Google/ })
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('link', { name: 'Terms of Service' })
+    ).not.toBeInTheDocument()
+  })
 
-    settle(false)
+  it('withholds the sign-up form while region detection is pending', () => {
+    inChina.defer()
+    renderSignInContent()
 
-    await waitFor(() => {
-      expect(screen.getByTestId('signup-form')).toBeInTheDocument()
-    })
+    expect(screen.getByTestId('api-key-form')).toBeInTheDocument()
+    expect(screen.queryByTestId('region-check-pending')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('signup-form')).not.toBeInTheDocument()
   })
 
   it('never renders the sign-up form inside China, pending or settled', async () => {
     const settle = inChina.defer()
     renderSignInContent()
-    await switchToSignUp()
 
     expect(screen.queryByTestId('signup-form')).not.toBeInTheDocument()
 
     settle(true)
+    await flushAsync()
 
-    await waitFor(() => {
-      expect(
-        screen.getByText('Email sign-up is unavailable in your region.')
-      ).toBeInTheDocument()
-    })
+    expect(screen.getByTestId('api-key-form')).toBeInTheDocument()
     expect(screen.queryByTestId('signup-form')).not.toBeInTheDocument()
-  })
-
-  it('renders the sign-up form outside China', async () => {
-    renderSignInContent()
-    await switchToSignUp()
-
-    await waitFor(() => {
-      expect(screen.getByTestId('signup-form')).toBeInTheDocument()
-    })
     expect(
       screen.queryByText('Email sign-up is unavailable in your region.')
     ).not.toBeInTheDocument()
   })
 
-  it('releases the sign-up form when region detection fails', async () => {
-    inChina.reject(new Error('probe failed'))
+  it('never renders the sign-up form outside China', async () => {
     renderSignInContent()
-    await switchToSignUp()
+    await flushAsync()
 
-    await waitFor(() => {
-      expect(screen.getByTestId('signup-form')).toBeInTheDocument()
-    })
+    expect(screen.getByTestId('api-key-form')).toBeInTheDocument()
+    expect(screen.queryByTestId('signup-form')).not.toBeInTheDocument()
   })
 
-  it('keeps the form withheld however long detection takes', async () => {
+  it('never renders the sign-up form when region detection fails', async () => {
+    inChina.reject(new Error('probe failed'))
+    renderSignInContent()
+    await flushAsync()
+
+    expect(screen.getByTestId('api-key-form')).toBeInTheDocument()
+    expect(screen.queryByTestId('signup-form')).not.toBeInTheDocument()
+  })
+
+  it('keeps the account surface unreachable however long detection takes', async () => {
     // Fake timers must predate mount, or a fallback scheduled during mount runs
     // on the real clock and escapes the drain below.
     vi.useFakeTimers()
     try {
       inChina.hang()
       renderSignInContent()
-      await switchToSignUp(vi.advanceTimersByTime)
-
-      expect(screen.getByTestId('region-check-pending')).toBeInTheDocument()
 
       await vi.advanceTimersByTimeAsync(60_000)
 
@@ -198,34 +177,34 @@ describe('SignInContent', () => {
         screen.queryByTestId('signup-form'),
         "no caller-side fallback may release the form on detection's behalf"
       ).not.toBeInTheDocument()
-      expect(screen.getByTestId('region-check-pending')).toBeInTheDocument()
+      expect(
+        screen.queryByTestId('region-check-pending')
+      ).not.toBeInTheDocument()
+      expect(screen.getByTestId('api-key-form')).toBeInTheDocument()
     } finally {
       vi.useRealTimers()
     }
   })
 
-  it('leaves sign-in ungated by region', async () => {
+  it('leaves the API key form ungated by region', async () => {
     inChina.value = true
     renderSignInContent()
+    await flushAsync()
 
-    await waitFor(() => {
-      expect(screen.getByTestId('signin-form')).toBeInTheDocument()
-    })
+    expect(screen.getByTestId('api-key-form')).toBeInTheDocument()
     expect(screen.queryByTestId('region-check-pending')).not.toBeInTheDocument()
   })
 
-  it('offers social sign-up inside China', async () => {
+  it('never offers social sign-up inside China', async () => {
     inChina.value = true
     renderSignInContent()
-    await switchToSignUp()
+    await flushAsync()
 
-    await waitFor(() => {
-      expect(
-        screen.getByRole('button', { name: /Sign up with Google/ })
-      ).toBeInTheDocument()
-    })
     expect(
-      screen.getByRole('button', { name: /Sign up with GitHub/ })
-    ).toBeInTheDocument()
+      screen.queryByRole('button', { name: /Sign up with Google/ })
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: /Sign up with GitHub/ })
+    ).not.toBeInTheDocument()
   })
 })

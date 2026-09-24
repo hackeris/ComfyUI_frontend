@@ -185,14 +185,13 @@ const { userDisplayName, userEmail, userPhotoUrl, handleSignOut } =
   useCurrentUser()
 const settingsDialog = useSettingsDialog()
 const dialogService = useDialogService()
-const {
-  canAccessSubscriptionFeatures,
-  tier,
-  subscription,
-  balance,
-  isLoading,
-  fetchBalance
-} = useBillingContext()
+const { tier, subscription, balance, isLoading, fetchBalance } =
+  useBillingContext()
+
+// 2026-09-25 ohos: 订阅/计费面门控 —— 原值来自 useBillingContext().canAccessSubscriptionFeatures,
+// 该值在 localhost 构建下恒为 true(useSubscription.ts:50-54)。此处就地覆盖为 false,
+// 使本文件内 L73/L106/L118 三处订阅区块同时失效。不改定义处(那里被 cloud 组件共用)。
+const canAccessSubscriptionFeatures = computed(() => false)
 const { formatTierName } = useWorkspaceTierLabel()
 const { locale } = useI18n()
 

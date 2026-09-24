@@ -481,7 +481,10 @@ export const CORE_SETTINGS: SettingParams[] = [
     name: 'Show version updates',
     tooltip: 'Show updates for new models, and major new features.',
     type: 'boolean',
-    defaultValue: true
+    // 2026-09-25 ohos: 默认关闭 —— 该设置开启时前端会在启动后自动拉取
+    // {api}/release-notes(带 current_version/form_factor/locale), 本应用版本锁定无更新语义。
+    // 详见 spec §3.5
+    defaultValue: false
   },
   {
     id: 'Comfy.ConfirmClear',

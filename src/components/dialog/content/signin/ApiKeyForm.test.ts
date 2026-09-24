@@ -81,13 +81,13 @@ describe('ApiKeyForm', () => {
     expect(screen.getByRole('button', { name: 'Save' })).toBeInTheDocument()
   })
 
-  it('emits back event when back button is clicked', async () => {
-    const onBack = vi.fn()
-    const { user } = renderComponent({ onBack })
+  it('gates off the back button, leaving Save as the only action', () => {
+    renderComponent()
 
-    await user.click(screen.getByRole('button', { name: 'Back' }))
-
-    expect(onBack).toHaveBeenCalled()
+    expect(
+      screen.queryByRole('button', { name: 'Back' })
+    ).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Save' })).toBeInTheDocument()
   })
 
   it('shows loading state when submitting', () => {

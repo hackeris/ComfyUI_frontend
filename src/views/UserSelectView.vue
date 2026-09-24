@@ -4,7 +4,7 @@
       id="comfy-user-selection"
       class="relative min-w-84 rounded-lg bg-(--comfy-menu-bg) p-5 px-10 shadow-lg"
     >
-      <h1 class="my-2.5 mb-7 font-normal">ComfyUI</h1>
+      <h1 class="my-2.5 mb-7 font-normal">梦幻之流</h1>
       <div class="flex w-full flex-col items-center">
         <div class="flex w-full flex-col gap-2">
           <label for="new-user-input">{{ $t('userSelect.newUser') }}:</label>

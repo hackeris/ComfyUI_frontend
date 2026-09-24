@@ -250,11 +250,16 @@ export function useSettingUI(
     )
   }
 
+  // 2026-09-25 ohos: 账号/订阅类设置面板整体门控 —— 定义全部保留(creditsPanel /
+  // userPanel / planCreditsPanel 等仍在下方), 仅不注册进面板列表。
+  // 详见 docs/superpowers/specs/2026-09-24-branding-cleanup-design.md §3.1
+  const showAccountPanels = false as boolean
+
   const panels = computed<SettingPanelItem[]>(() => [
     aboutPanel,
-    creditsPanel,
-    userPanel,
-    ...visibleWorkspacePanels.value,
+    ...(showAccountPanels
+      ? [creditsPanel, userPanel, ...visibleWorkspacePanels.value]
+      : []),
     keybindingPanel,
     extensionPanel,
     ...(isDesktop ? [serverConfigPanel] : []),

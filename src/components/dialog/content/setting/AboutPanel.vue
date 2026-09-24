@@ -24,6 +24,10 @@
 
     <Divider />
 
+    <p class="my-0 text-sm text-muted">
+      {{ $t('g.builtOnComfyUI') }}
+    </p>
+
     <SystemStatsPanel
       v-if="systemStatsStore.systemStats"
       :stats="systemStatsStore.systemStats"

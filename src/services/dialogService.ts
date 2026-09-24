@@ -241,14 +241,14 @@ export const useDialogService = () => {
   }
 
   async function showSignInDialog(): Promise<boolean> {
-    const [{ default: SignInContent }, { default: ComfyOrgHeader }] =
-      await Promise.all([lazySignInContent(), lazyComfyOrgHeader()])
+    // 2026-09-25 ohos: 该对话框已仅承载 API Key 表单(ApiKeyForm 自带标题与说明),
+    // 故去掉装饰性的 ComfyOrg logo 标题组件(详见 spec §3.2)。
+    const { default: SignInContent } = await lazySignInContent()
 
     return new Promise<boolean>((resolve) => {
       dialogStore.showDialog({
         key: 'global-signin',
         component: SignInContent,
-        headerComponent: ComfyOrgHeader,
         props: {
           onSuccess: () => resolve(true)
         },

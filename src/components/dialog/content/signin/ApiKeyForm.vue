@@ -66,8 +66,13 @@
         </div>
       </div>
 
-      <div class="mt-4 flex items-center justify-between">
-        <Button type="button" variant="textonly" @click="$emit('back')">
+      <div class="mt-4 flex items-center justify-end">
+        <Button
+          v-if="false"
+          type="button"
+          variant="textonly"
+          @click="$emit('back')"
+        >
           {{ t('g.back') }}
         </Button>
         <Button

@@ -79,6 +79,7 @@
     "systemStatsComfyUIVersion": "ComfyUI Version",
     "systemStatsFrontendVersion": "Frontend Version",
     "about": "About",
+    "builtOnComfyUI": "基于 ComfyUI 构建 · GPL-3.0",
     "add": "Add",
     "confirm": "Confirm",
     "confirmed": "Confirmed",

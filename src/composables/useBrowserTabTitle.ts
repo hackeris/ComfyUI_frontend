@@ -8,9 +8,12 @@ import { useExecutionStore } from '@/stores/executionStore'
 import { useWorkspaceStore } from '@/stores/workspaceStore'
 
 // Capture the initial title injected by Vite (e.g. for SEO on cloud.comfy.org)
+// 2026-09-25 ohos: 品牌正名(详见 spec §3.4)
 const DEFAULT_TITLE =
-  typeof document !== 'undefined' && document.title ? document.title : 'ComfyUI'
-const TITLE_SUFFIX = ' - ComfyUI'
+  typeof document !== 'undefined' && document.title
+    ? document.title
+    : '梦幻之流'
+const TITLE_SUFFIX = ' - 梦幻之流'
 
 export const useBrowserTabTitle = () => {
   const executionStore = useExecutionStore()
