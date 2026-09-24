@@ -218,23 +218,20 @@ describe('useSettingUI', () => {
       })
     })
 
-    it('shows Plan & Credits and Members on cloud', () => {
+    it('shows Plan & Credits and Members in the cloud nav, unregistered as panels', () => {
       env.state.isCloud = true
       const { defaultCategory, findPanelByKey, navGroups } =
         useSettingUI('workspace')
       const workspaceItems = navGroups.value
         .find((group) => group.title === 'Workspace')
         ?.items.map(({ id, label }) => ({ id, label }))
-      const planCreditsPanel = findPanelByKey('workspace')
-      const membersPanel = findPanelByKey('workspace-members')
 
       expect(workspaceItems).toEqual([
         { id: 'workspace', label: 'PlanCredits' },
         { id: 'workspace-members', label: 'Members' }
       ])
-      expect(planCreditsPanel?.component).toBe(membersPanel?.component)
-      expect(planCreditsPanel?.props).toEqual({ section: 'planCredits' })
-      expect(membersPanel?.props).toEqual({ section: 'members' })
+      expect(findPanelByKey('workspace')).toBeNull()
+      expect(findPanelByKey('workspace-members')).toBeNull()
       expect(defaultCategory.value).toMatchObject({
         key: 'workspace',
         label: 'PlanCredits'
@@ -281,16 +278,14 @@ describe('useSettingUI', () => {
       }
     )
 
-    it('keeps the hidden legacy Credits panel reachable by deep link', () => {
-      const { defaultCategory, navGroups } = useSettingUI('credits')
+    it('keeps the gated legacy Credits panel out of the nav and unreachable by deep link', () => {
+      const { defaultCategory, navGroups, settingCategories } =
+        useSettingUI('credits')
 
       expect(
         navGroups.value.flatMap((group) => group.items.map(({ id }) => id))
       ).not.toContain('credits')
-      expect(defaultCategory.value).toMatchObject({
-        key: 'credits',
-        label: 'Credits'
-      })
+      expect(defaultCategory.value).toBe(settingCategories.value[0])
     })
   })
 

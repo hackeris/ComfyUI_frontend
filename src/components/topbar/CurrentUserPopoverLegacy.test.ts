@@ -205,19 +205,11 @@ describe('CurrentUserPopoverLegacy', () => {
     })
   })
 
-  it('formats and displays the facade balance', () => {
+  it('withholds the credits balance row from the account menu', () => {
     renderComponent()
 
-    expect(formatCreditsFromCents).toHaveBeenCalledWith({
-      cents: 100_000,
-      locale: 'en',
-      numberOptions: {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 2
-      }
-    })
-
-    expect(screen.getByText('1000')).toBeInTheDocument()
+    expect(formatCreditsFromCents).not.toHaveBeenCalled()
+    expect(screen.queryByText('1000')).toBeNull()
   })
 
   it('shows a skeleton instead of the balance while billing is loading', () => {
@@ -236,16 +228,10 @@ describe('CurrentUserPopoverLegacy', () => {
   })
 
   describe('credits help icon (FE-617)', () => {
-    it('renders the credits help icon as an interactive button with the unified-credits tooltip as its accessible name', () => {
+    it('gates off the credits help icon along with the credits row', () => {
       renderComponent()
 
-      const helpButton = screen.getByTestId('credits-info-button')
-      expect(helpButton).toBeInTheDocument()
-      expect(helpButton.tagName).toBe('BUTTON')
-      expect(helpButton).toHaveAttribute(
-        'aria-label',
-        enMessages.credits.unified.tooltip
-      )
+      expect(screen.queryByTestId('credits-info-button')).toBeNull()
     })
   })
 
@@ -271,41 +257,24 @@ describe('CurrentUserPopoverLegacy', () => {
     expect(onClose).toHaveBeenCalledTimes(1)
   })
 
-  it('opens API pricing docs and emits close event when partner nodes item is clicked', async () => {
-    const { user, onClose } = renderComponent()
+  it('withholds the partner nodes menu item from the account menu', () => {
+    renderComponent()
 
-    expect(screen.getByTestId('partner-nodes-menu-item')).toBeInTheDocument()
-
-    await user.click(screen.getByTestId('partner-nodes-menu-item'))
-
-    expect(window.open).toHaveBeenCalledWith(
-      'https://docs.comfy.org/tutorials/partner-nodes/pricing',
-      '_blank'
-    )
-    expect(onClose).toHaveBeenCalledTimes(1)
+    expect(screen.queryByTestId('partner-nodes-menu-item')).toBeNull()
+    expect(window.open).not.toHaveBeenCalled()
   })
 
-  it('opens top-up dialog and emits close event when top-up button is clicked', async () => {
-    const { user, onClose } = renderComponent()
+  it('withholds the top-up credits button from the account menu', () => {
+    renderComponent()
 
-    expect(screen.getByTestId('add-credits-button')).toBeInTheDocument()
-
-    await user.click(screen.getByTestId('add-credits-button'))
-
-    expect(mockShowTopUpCreditsDialog).toHaveBeenCalled()
-    expect(onClose).toHaveBeenCalledTimes(1)
+    expect(screen.queryByTestId('add-credits-button')).toBeNull()
+    expect(mockShowTopUpCreditsDialog).not.toHaveBeenCalled()
   })
 
-  it('opens Plan & Credits from the legacy account menu', async () => {
-    const { user, onClose } = renderComponent()
+  it('withholds the Plan & Credits item from the legacy account menu', () => {
+    renderComponent()
 
-    const menuItem = screen.getByTestId('manage-plan-menu-item')
-    expect(menuItem).toHaveTextContent(enMessages.credits.credits)
-
-    await user.click(menuItem)
-
-    expect(mockShowSettingsDialog).toHaveBeenCalledWith('workspace')
-    expect(onClose).toHaveBeenCalledTimes(1)
+    expect(screen.queryByTestId('manage-plan-menu-item')).toBeNull()
   })
 
   describe('facade balance handling', () => {
@@ -318,15 +287,8 @@ describe('CurrentUserPopoverLegacy', () => {
 
       renderComponent()
 
-      expect(formatCreditsFromCents).toHaveBeenCalledWith({
-        cents: 150_000,
-        locale: 'en',
-        numberOptions: {
-          minimumFractionDigits: 0,
-          maximumFractionDigits: 2
-        }
-      })
-      expect(screen.getByText('1500')).toBeInTheDocument()
+      expect(formatCreditsFromCents).not.toHaveBeenCalled()
+      expect(screen.queryByText('1500')).toBeNull()
     })
 
     it('uses effectiveBalanceMicros when zero', () => {
@@ -338,15 +300,8 @@ describe('CurrentUserPopoverLegacy', () => {
 
       renderComponent()
 
-      expect(formatCreditsFromCents).toHaveBeenCalledWith({
-        cents: 0,
-        locale: 'en',
-        numberOptions: {
-          minimumFractionDigits: 0,
-          maximumFractionDigits: 2
-        }
-      })
-      expect(screen.getByText('0')).toBeInTheDocument()
+      expect(formatCreditsFromCents).not.toHaveBeenCalled()
+      expect(screen.queryByText('0')).toBeNull()
     })
 
     it('uses effectiveBalanceMicros when negative', () => {
@@ -358,15 +313,8 @@ describe('CurrentUserPopoverLegacy', () => {
 
       renderComponent()
 
-      expect(formatCreditsFromCents).toHaveBeenCalledWith({
-        cents: -50_000,
-        locale: 'en',
-        numberOptions: {
-          minimumFractionDigits: 0,
-          maximumFractionDigits: 2
-        }
-      })
-      expect(screen.getByText('-500')).toBeInTheDocument()
+      expect(formatCreditsFromCents).not.toHaveBeenCalled()
+      expect(screen.queryByText('-500')).toBeNull()
     })
 
     it('falls back to amountMicros when effectiveBalanceMicros is missing', () => {
@@ -377,15 +325,8 @@ describe('CurrentUserPopoverLegacy', () => {
 
       renderComponent()
 
-      expect(formatCreditsFromCents).toHaveBeenCalledWith({
-        cents: 100_000,
-        locale: 'en',
-        numberOptions: {
-          minimumFractionDigits: 0,
-          maximumFractionDigits: 2
-        }
-      })
-      expect(screen.getByText('1000')).toBeInTheDocument()
+      expect(formatCreditsFromCents).not.toHaveBeenCalled()
+      expect(screen.queryByText('1000')).toBeNull()
     })
 
     it('falls back to 0 when the facade reports no balance', () => {
@@ -393,15 +334,8 @@ describe('CurrentUserPopoverLegacy', () => {
 
       renderComponent()
 
-      expect(formatCreditsFromCents).toHaveBeenCalledWith({
-        cents: 0,
-        locale: 'en',
-        numberOptions: {
-          minimumFractionDigits: 0,
-          maximumFractionDigits: 2
-        }
-      })
-      expect(screen.getByText('0')).toBeInTheDocument()
+      expect(formatCreditsFromCents).not.toHaveBeenCalled()
+      expect(screen.queryByText('0')).toBeNull()
     })
   })
   describe('workspace selector (non-cloud)', () => {
