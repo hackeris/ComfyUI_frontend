@@ -117,8 +117,9 @@
       >
         <i class="icon-[lucide--megaphone]" />
       </Button>
+      <!-- ohos: 顶栏 API Key 入口已统一到设置, 此处关停(showLoginButton=false) -->
       <CurrentUserButton v-if="showCurrentUser" compact class="shrink-0 p-1" />
-      <LoginButton v-else class="p-1" />
+      <LoginButton v-else-if="showLoginButton" class="p-1" />
     </div>
     <div v-if="isDesktop" class="window-actions-spacer app-drag shrink-0" />
   </div>
@@ -186,6 +187,8 @@ const isIntegratedTabBar = computed(
   () => settingStore.get('Comfy.UI.TabBarLayout') !== 'Legacy'
 )
 const showCurrentUser = computed(() => isCloud || isLoggedIn.value)
+// ohos: 关停顶栏登录按钮 —— 配置入口统一到「设置 → 其他 → API 密钥」
+const showLoginButton = false
 
 function openFeedback() {
   openFeedbackDialog('topbar')

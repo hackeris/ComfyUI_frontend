@@ -230,9 +230,10 @@ describe('TopMenuSection', () => {
         mockData.isLoggedIn = false
       })
 
-      it('should display LoginButton and not display CurrentUserButton', () => {
+      // ohos: LoginButton 已关停(showLoginButton=false) —— 未配 key 时两个按钮都不渲染
+      it('should display neither button (LoginButton gated off)', () => {
         const { container } = createLegacyTabBarWrapper()
-        expect(container.querySelector('login-button-stub')).not.toBeNull()
+        expect(container.querySelector('login-button-stub')).toBeNull()
         expect(container.querySelector('current-user-button-stub')).toBeNull()
       })
     })

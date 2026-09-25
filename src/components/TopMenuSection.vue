@@ -80,11 +80,14 @@
                 :queue-overlay-expanded="isQueueOverlayExpanded"
                 @update:progress-target="updateProgressTarget"
               />
+              <!-- ohos: 顶栏 API Key 入口已统一到「设置 → 其他 → API 密钥」, 此处关停
+                   (showLoginButton=false); 保留组件与引用便于上游合并。
+                   CurrentUserButton 不受影响 —— 它是 Logout(清除密钥)的唯一入口 -->
               <CurrentUserButton
                 v-if="isLoggedIn && !isIntegratedTabBar"
                 class="shrink-0"
               />
-              <LoginButton v-else-if="!isIntegratedTabBar" />
+              <LoginButton v-else-if="showLoginButton && !isIntegratedTabBar" />
               <Button
                 v-if="isCloud && flags.workflowSharingEnabled"
                 v-tooltip.bottom="shareTooltipConfig"
@@ -218,6 +221,8 @@ const managerState = useManagerState()
 const managerSurveyDialog = useManagerSurveyDialog()
 const { flags } = useFeatureFlags()
 const { isLoggedIn } = useCurrentUser()
+// ohos: 关停顶栏登录按钮(未配 key 时的人形图标) —— 配置入口统一到设置
+const showLoginButton = false
 const { t } = useI18n()
 const { toastErrorHandler } = useErrorHandling()
 const executionErrorStore = useExecutionErrorStore()
